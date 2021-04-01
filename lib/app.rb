@@ -15,18 +15,22 @@ class App
   end
 
   def main_menu
-    puts "-------------- PillPal --------------\n"
-    input = @prompt.select("Please choose from the following options.\n\n") do |menu|
+    titlebar
+    choice = @prompt.select("Please choose from the following options.\n\n") do |menu|
       menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
       menu.show_help :always
-      menu.choice "Add new medications", 1
-      menu.choice "View, edit or delete existing medications", 2
-      menu.choice "View and edit medication inventories and rebuy alerts", 3
-      menu.choice "Get 3, 6 or 12 hour schedule", 4
-      menu.choice "Get 1 week or 2 week schedule", 5
+      menu.choice "Add new medications", 1, disabled: "(not yet implemented)"
+      menu.choice "View, edit or delete existing medications", 2, disabled: "(not yet implemented)"
+      menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
+      menu.choice "Get 3, 6 or 12 hour schedule", 4, disabled: "(not yet implemented)"
+      menu.choice "Get 1 week or 2 week schedule", 5, disabled: "(not yet implemented)"
       menu.choice "Exit", 6
-      process_menu_input(input)
     end
+    process_menu_input(choice)
+  end
+
+  def titlebar
+    puts "-------------- PillPal --------------\n\n"
   end
 
   def process_menu_input(input)
@@ -42,8 +46,11 @@ class App
     when 5
       long_schedule_menu
     when 6
+      clear
+      titlebar
       puts "Thanks for using PillPal!"
-      sleep(1)
+      sleep(2)
+      clear
       exit
     else
       puts "Invalid selection" # REPLACE WITH PROPER ERROR HANDLING
