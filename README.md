@@ -10,6 +10,18 @@ PillPal allows you to input your medication names, dosages, how many you have an
 
 ## Installation
 
+### Ruby
+
+To use PillPal you will need to have Ruby 2.7.2 installed.
+
+https://www.ruby-lang.org/en/documentation/installation/
+
+### Dependencies
+
+PillPal uses the following dependencies, which can be installed from the ```/src``` directory using ```bundle install```:
+
+- tty-prompt
+
 ## Usage
 
 ### Using menu
