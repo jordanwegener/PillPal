@@ -104,6 +104,22 @@ class App
     continue
   end
 
+  def edit_medication_weekly(index)
+    clear
+    titlebar
+    puts "Edit medication\n\n"
+    medication_name = @prompt.ask("What is the new name of the medication?")
+    choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
+    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
+    medication_times_taken = time_input
+    @medications[index].edit_medication(medication_name, medication_days_taken, medication_times_taken)
+    clear
+    titlebar
+    puts "Medication updated!\n"
+    medications[index].display_medication
+    continue
+  end
+
   def add_medication_interval
     clear
     titlebar
@@ -114,6 +130,21 @@ class App
     @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken))
     puts "Medication added!\n"
     medications.last.display_medication
+    continue
+  end
+
+  def edit_medication_interval(index)
+    clear
+    titlebar
+    puts "Edit medication\n\n"
+    medication_name = @prompt.ask("What is the new name of the medication?")
+    medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
+    medication_times_taken = time_input
+    @medications[index].edit_medication(medication_name, medication_interval, medication_times_taken)
+    clear
+    titlebar
+    puts "Medication updated!\n"
+    medications[index].display_medication
     continue
   end
 
@@ -136,19 +167,25 @@ class App
         continue
       when 2
         display_all_medications
-        choice = @prompt.ask("Which entry would you like to edit?", help: "Enter a number to edit or q to cancel. Careful, this is permanent!")
-        # if choice.is_a?(Integer)
-        #   medications.delete_at(choice.to_i)
-        #   puts "/n Entry deleted!"
-        #   continue
-        # end
+        choice = @prompt.ask("Which entry would you like to edit?\n\nEnter a number to edit or q to cancel.\nCareful, this is permanent!")
+        if choice.is_integer? && choice.to_i > 0
+          if medications[choice.to_i - 1].class == Medication_weekly
+            edit_medication_weekly(choice.to_i)
+          elsif medications[choice.to_i - 1].class == Medication_interval
+            edit_medication_interval(choice.to_i - 1)
+          end
+        else
+          medications_menu
+        end
       when 3
         display_all_medications
-        choice = @prompt.ask("Which entry would you like to delete?", help: "Enter a number to delete or q to cancel. Careful, this is permanent!")
-        if choice.to_i.is_a?(Integer)
+        choice = @prompt.ask("Which entry would you like to delete?\n\nEnter a number to delete or q to cancel.\nCareful, this is permanent!")
+        if choice.is_integer? && choice.to_i > 0
           medications.delete_at(choice.to_i - 1)
-          puts "/n Entry deleted!"
+          puts "\nEntry deleted!"
           continue
+        else
+          medications_menu
         end
       when 4
         break
@@ -161,7 +198,7 @@ class App
       puts "Current medications:\n\n"
       i = 1
       medications.each do |medication|
-        puts "--------- #{i} ---------"
+        puts "--------- #{i} ---------\n"
         medication.display_medication
         puts "\n---------------------\n\n"
         i += 1
@@ -205,5 +242,11 @@ class App
   def continue
     print "Press any key to continue..."
     STDIN.getch
+  end
+end
+
+class String # This is here to provide a way to check if user input is an integer-like string
+  def is_integer?
+    self.to_i.to_s == self
   end
 end

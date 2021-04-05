@@ -1,7 +1,7 @@
 # This file contains all medication entry classes
 
 class Medication
-  attr_accessor :name, :type, :inventory, :inventory_threshold
+  attr_accessor :name, :inventory, :inventory_threshold
 
   def initialize(name)
     @name = name
@@ -20,7 +20,6 @@ class Medication_weekly < Medication
     @name = name
     @days_taken = days_taken
     @times_taken = times_taken
-    @type = "weekly"
   end
 
   def display_medication
@@ -29,6 +28,12 @@ class Medication_weekly < Medication
     p @days_taken
     puts "Times taken: "
     p @times_taken
+  end
+
+  def edit_medication(name, days_taken, times_taken)
+    @name = name
+    @days_taken = days_taken
+    @times_taken = times_taken
   end
 end
 
@@ -39,7 +44,6 @@ class Medication_interval < Medication
     @name = name
     @interval = interval
     @times_taken = times_taken
-    @type = "interval"
   end
 
   def display_medication
@@ -47,5 +51,11 @@ class Medication_interval < Medication
     puts "Dose interval: #{@interval} days"
     puts "Times taken: "
     p @times_taken
+  end
+
+  def edit_medication(name, interval, times_taken)
+    @name = name
+    @interval = interval
+    @times_taken = times_taken
   end
 end
