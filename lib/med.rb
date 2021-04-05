@@ -6,6 +6,11 @@ class Medication
   def initialize(name)
     @name = name
   end
+
+  def inventory_setup(inventory, inventory_threshold)
+    @inventory = inventory
+    @inventory_threshold = inventory_threshold
+  end
 end
 
 class Medication_weekly < Medication
