@@ -1,5 +1,6 @@
 # This file contains classes and methods used to run the app
 require "tty-prompt"
+require "tod"
 require_relative ("med.rb")
 
 class App
@@ -91,26 +92,33 @@ class App
     medication_name = @prompt.ask("What is the name of the medication?")
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7)
-    medication_times_taken
+    medication_times_taken = time_input
     puts medication_name
     p medication_days_taken
-    sleep(5)
+    p medication_times_taken
+    @medications.push(Medication_weekly.new(medication_name, medication_days_taken, medication_times_taken))
+    pp @medications
+    sleep(10)
   end
 
   def time_input
     times = []
-    input = @prompt.ask("What is the first time of day you have to take this medication?", default: "24hr time in HH:MM format", convert: :time)
-    times.push(input)
-    continue = prompt.yes?("Do you need to add additional times when this medication is taken?")
+    input = @prompt.ask("What is the first time of day you have to take this medication?", default: "24hr time in HH:MM format")
+    time = Tod::TimeOfDay.parse(input)
+    times.push(time.second_of_day)
+    continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
     if continue == true
       loop do
-        input = @prompt.ask("What is the next time of day you need to take this medication?" default: "24hr time in HH:MM format", convert: :time)
-        times.push(input)
-        continue = prompt.yes?("Do you need to add additional times when this medication is taken?")
+        input = @prompt.ask("What is the next time of day you need to take this medication?", default: "24hr time in HH:MM format")
+        time = Tod::TimeOfDay.parse(input)
+        times.push(time.second_of_day)
+        continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
         if continue == false
           break
+        end
+      end
     end
-    end
+    return times
   end
 
   def clear

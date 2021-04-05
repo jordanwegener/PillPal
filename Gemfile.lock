@@ -3,6 +3,7 @@ GEM
   specs:
     pastel (0.8.0)
       tty-color (~> 0.5)
+    tod (3.0.0)
     tty-color (0.6.0)
     tty-cursor (0.7.1)
     tty-prompt (0.23.0)
@@ -19,6 +20,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  tod
   tty-prompt
 
 BUNDLED WITH
