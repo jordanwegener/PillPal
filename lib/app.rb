@@ -118,18 +118,64 @@ class App
   end
 
   def medications_menu
-    clear
-    titlebar
-    puts "View, edit or delete existing medications\n\n"
-    puts "Current medications:\n\n"
-    i = 1
-    medications.each do |medication|
-      puts "--------- #{i} ---------"
-      medication.display_medication
-      puts "\n---------------------\n\n"
-      i += 1
+    loop do
+      clear
+      titlebar
+      puts "View, edit or delete existing medications\n\n"
+      choice = @prompt.select("Please select from the following options:\n\n") do |menu|
+        menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
+        menu.show_help :always
+        menu.choice "View all medication entries", 1
+        menu.choice "Edit a medication entry", 2
+        menu.choice "Delete a medication entry", 3
+        menu.choice "Back", 4
+      end
+      case choice
+      when 1
+        display_all_medications
+        continue
+      when 2
+        display_all_medications
+        choice = @prompt.ask("Which entry would you like to edit?", help: "Enter a number to edit or q to cancel. Careful, this is permanent!")
+        # if choice.is_a?(Integer)
+        #   medications.delete_at(choice.to_i)
+        #   puts "/n Entry deleted!"
+        #   continue
+        # end
+      when 3
+        display_all_medications
+        choice = @prompt.ask("Which entry would you like to delete?", help: "Enter a number to delete or q to cancel. Careful, this is permanent!")
+        if choice.to_i.is_a?(Integer)
+          medications.delete_at(choice.to_i - 1)
+          puts "/n Entry deleted!"
+          continue
+        end
+      when 4
+        break
+      end
     end
-    continue
+  end
+
+  def display_all_medications
+    if medications.length > 0
+      puts "Current medications:\n\n"
+      i = 1
+      medications.each do |medication|
+        puts "--------- #{i} ---------"
+        medication.display_medication
+        puts "\n---------------------\n\n"
+        i += 1
+      end
+    else
+      puts "\nThere are no medications yet...\n\n"
+      goto_wizard = @prompt.yes?("Would you like to add your first one now?")
+      if goto_wizard == true
+        add_medication_menu
+      else
+        clear
+        main_menu
+      end
+    end
   end
 
   def time_input
