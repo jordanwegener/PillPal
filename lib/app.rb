@@ -218,14 +218,14 @@ class App
   def time_input
     times = []
     input = @prompt.ask("What is the first (or only) time of day you have to take this medication?")
-    time = Tod::TimeOfDay.parse(input)
-    times.push(time.second_of_day)
+    time_taken = Tod::TimeOfDay.parse(input)
+    times.push({ hour: time_taken.hour.to_s.rjust(2, "0"), minute: time_taken.minute.to_s.rjust(2, "0"), second_of_day: time_taken.second_of_day })
     continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
     if continue == true
       loop do
         input = @prompt.ask("What is the next time of day you need to take this medication?")
-        time = Tod::TimeOfDay.parse(input)
-        times.push(time.second_of_day)
+        time_taken = Tod::TimeOfDay.parse(input)
+        times.push({ hour: time_taken.hour.to_s.rjust(2, "0"), minute: time_taken.minute.to_s.rjust(2, "0"), second_of_day: time_taken.second_of_day })
         continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
         if continue == false
           break
