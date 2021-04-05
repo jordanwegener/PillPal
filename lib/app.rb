@@ -1,6 +1,7 @@
 # This file contains classes and methods used to run the app
 require "tty-prompt"
 require "tod"
+require "io/console"
 require_relative ("med.rb")
 
 class App
@@ -93,23 +94,58 @@ class App
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7)
     medication_times_taken = time_input
-    puts medication_name
-    p medication_days_taken
-    p medication_times_taken
     @medications.push(Medication_weekly.new(medication_name, medication_days_taken, medication_times_taken))
-    pp @medications
-    sleep(10)
+    clear
+    titlebar
+    puts "Medication added!"
+    puts "Medication name: \n#{medications.last.name}"
+    puts "Days taken: "
+    p medications.last.days_taken
+    puts "Times taken: "
+    p medications.last.times_taken
+    continue
+  end
+
+  def add_medication_interval
+    clear
+    titlebar
+    medication_name = @prompt.ask("What is the name of the medication?")
+    medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
+    medication_times_taken = time_input
+    @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken))
+    puts "Medication added!"
+    display_medication(medications.length)
+    # puts "Medication name: \n#{medications.last.name}"
+    # puts "Dose interval: #{medications.last.interval} days"
+    # puts "Times taken: "
+    # p medications.last.times_taken
+    continue
+  end
+
+  def display_medication(index)
+    if medications[index].type == "weekly"
+      puts "Medication name: \n#{medications[index].name}"
+      puts "Days taken: "
+      p medications[index].days_taken
+      puts "Times taken: "
+      p medications[index].times_taken
+    else
+      puts "Medication name: \n#{medications[index].name}"
+      puts "Dose interval: #{medications[index].interval} days"
+      puts "Times taken: "
+      p medications[index].times_taken
+    end
   end
 
   def time_input
     times = []
-    input = @prompt.ask("What is the first time of day you have to take this medication?", default: "24hr time in HH:MM format")
+    input = @prompt.ask("What is the first time of day you have to take this medication?")
     time = Tod::TimeOfDay.parse(input)
     times.push(time.second_of_day)
     continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
     if continue == true
       loop do
-        input = @prompt.ask("What is the next time of day you need to take this medication?", default: "24hr time in HH:MM format")
+        input = @prompt.ask("What is the next time of day you need to take this medication?")
         time = Tod::TimeOfDay.parse(input)
         times.push(time.second_of_day)
         continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
@@ -123,5 +159,10 @@ class App
 
   def clear
     system("clear") || system("cls")
+  end
+
+  def continue
+    print "Press any key to continue..."
+    STDIN.getch
   end
 end
