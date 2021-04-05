@@ -94,12 +94,12 @@ class App
     puts "Add medication taken on weekly schedule\n\n"
     medication_name = @prompt.ask("What is the name of the medication?")
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
-    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7)
+    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_times_taken = time_input
     @medications.push(Medication_weekly.new(medication_name, medication_days_taken, medication_times_taken))
     clear
     titlebar
-    puts "Medication added!"
+    puts "Medication added!\n"
     medications.last.display_medication
     continue
   end
@@ -112,7 +112,7 @@ class App
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
     @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken))
-    puts "Medication added!"
+    puts "Medication added!\n"
     medications.last.display_medication
     continue
   end

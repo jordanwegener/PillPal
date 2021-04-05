@@ -20,7 +20,8 @@ https://www.ruby-lang.org/en/documentation/installation/
 
 PillPal uses the following dependencies, which can be installed from the ```/src``` directory using ```bundle install```:
 
-- tty-prompt
+- tty-prompt (to provide menu functionality)
+- Tod (to provide useful time of day classes)
 
 ## Usage
 
