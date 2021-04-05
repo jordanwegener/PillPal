@@ -22,6 +22,14 @@ class Medication_weekly < Medication
     @times_taken = times_taken
     @type = "weekly"
   end
+
+  def display_medication
+    puts "Medication name: \n#{@name}"
+    puts "Days taken: "
+    p @days_taken
+    puts "Times taken: "
+    p @times_taken
+  end
 end
 
 class Medication_interval < Medication
@@ -32,5 +40,12 @@ class Medication_interval < Medication
     @interval = interval
     @times_taken = times_taken
     @type = "interval"
+  end
+
+  def display_medication
+    puts "Medication name: \n#{@name}"
+    puts "Dose interval: #{@interval} days"
+    puts "Times taken: "
+    p @times_taken
   end
 end

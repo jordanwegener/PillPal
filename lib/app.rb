@@ -24,8 +24,9 @@ class App
     choice = @prompt.select("Please choose from the following options.\n\n") do |menu|
       menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
       menu.show_help :always
+      menu.per_page 10
       menu.choice "Add new medications", 1
-      menu.choice "View, edit or delete existing medications", 2, disabled: "(not yet implemented)"
+      menu.choice "View, edit or delete existing medications", 2
       menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
       menu.choice "Get 3, 6 or 12 hour schedule", 4, disabled: "(not yet implemented)"
       menu.choice "Get 1 week or 2 week schedule", 5, disabled: "(not yet implemented)"
@@ -90,6 +91,7 @@ class App
   def add_medication_weekly
     clear
     titlebar
+    puts "Add medication taken on weekly schedule\n\n"
     medication_name = @prompt.ask("What is the name of the medication?")
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7)
@@ -98,48 +100,38 @@ class App
     clear
     titlebar
     puts "Medication added!"
-    puts "Medication name: \n#{medications.last.name}"
-    puts "Days taken: "
-    p medications.last.days_taken
-    puts "Times taken: "
-    p medications.last.times_taken
+    medications.last.display_medication
     continue
   end
 
   def add_medication_interval
     clear
     titlebar
+    puts "Add medication taken at intervals\n\n"
     medication_name = @prompt.ask("What is the name of the medication?")
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
     @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken))
     puts "Medication added!"
-    display_medication(medications.length)
-    # puts "Medication name: \n#{medications.last.name}"
-    # puts "Dose interval: #{medications.last.interval} days"
-    # puts "Times taken: "
-    # p medications.last.times_taken
+    medications.last.display_medication
     continue
   end
 
-  def display_medication(index)
-    if medications[index].type == "weekly"
-      puts "Medication name: \n#{medications[index].name}"
-      puts "Days taken: "
-      p medications[index].days_taken
-      puts "Times taken: "
-      p medications[index].times_taken
-    else
-      puts "Medication name: \n#{medications[index].name}"
-      puts "Dose interval: #{medications[index].interval} days"
-      puts "Times taken: "
-      p medications[index].times_taken
+  def medications_menu
+    clear
+    titlebar
+    puts "View, edit or delete existing medications\n\n"
+    puts "Current medications:\n\n"
+    medications.each do |medication|
+      medication.display_medication
+      puts "\n-----------------\n\n"
     end
+    continue
   end
 
   def time_input
     times = []
-    input = @prompt.ask("What is the first time of day you have to take this medication?")
+    input = @prompt.ask("What is the first (or only) time of day you have to take this medication?")
     time = Tod::TimeOfDay.parse(input)
     times.push(time.second_of_day)
     continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
