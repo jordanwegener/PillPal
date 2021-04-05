@@ -122,9 +122,12 @@ class App
     titlebar
     puts "View, edit or delete existing medications\n\n"
     puts "Current medications:\n\n"
+    i = 1
     medications.each do |medication|
+      puts "--------- #{i} ---------"
       medication.display_medication
-      puts "\n-----------------\n\n"
+      puts "\n---------------------\n\n"
+      i += 1
     end
     continue
   end
