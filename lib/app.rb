@@ -2,6 +2,7 @@
 require "tty-prompt"
 require "tod"
 require "io/console"
+require "date"
 require_relative ("med.rb")
 
 class App
@@ -127,7 +128,8 @@ class App
     medication_name = @prompt.ask("What is the name of the medication?")
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
-    @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken))
+    medication_date_first_taken = get_date_taken(medication_interval)
+    @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken, medication_date_first_taken))
     puts "Medication added!\n"
     medications.last.display_medication
     continue
@@ -146,6 +148,30 @@ class App
     puts "Medication updated!\n"
     medications[index].display_medication
     continue
+  end
+
+  def get_date_taken(medication_interval)
+    choices = ["Today", "Tomorrow", "In 2 days", "In 3 days", "In 4 days", "In 5 days", "In 6 days"]
+    (choices.length - medication_interval).times { choices.pop }
+    choice = @prompt.select("When will you take the first dose?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
+    today = Date.today
+    case choice
+    when "Today"
+      medication_date_first_taken = today
+    when "Tomorrow"
+      medication_date_first_taken = today += 1
+    when "In 2 days"
+      medication_date_first_taken = today += 2
+    when "In 3 days"
+      medication_date_first_taken = today += 3
+    when "In 4 days"
+      medication_date_first_taken = today += 4
+    when "In 5 days"
+      medication_date_first_taken = today += 5
+    when "In 6 days"
+      medication_date_first_taken = today += 6
+    end
+    return medication_date_first_taken
   end
 
   def medications_menu

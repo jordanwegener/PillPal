@@ -42,26 +42,31 @@ class Medication_weekly < Medication
 end
 
 class Medication_interval < Medication
-  attr_accessor :interval, :times_taken
+  attr_accessor :interval, :times_taken, :date_first_taken
 
-  def initialize(name, interval, times_taken)
+  def initialize(name, interval, times_taken, date_first_taken)
     @name = name
     @interval = interval
     @times_taken = times_taken
+    @date_first_taken = date_first_taken
   end
 
   def display_medication
     puts "Medication name: \n#{@name}"
-    puts "Dose interval: #{@interval} days"
+    puts "Dose interval: \n#{@interval} days"
     puts "Times taken: "
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}"
     end
+    puts "Date of first dose: \n#{@date_first_taken}"
   end
 
-  def edit_medication(name, interval, times_taken)
+  def edit_medication(name, interval, times_taken, date_first_taken)
     @name = name
     @interval = interval
     @times_taken = times_taken
+  end
+
+  def check_needed()
   end
 end
