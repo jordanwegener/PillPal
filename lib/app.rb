@@ -265,7 +265,15 @@ class App
     clear
     titlebar
     puts "--------- 1 Week Schedule ---------\n\n"
-    medications_day = { "Sunday" => [], "Monday" => [], "Tuesday" => [], "Wednesday" => [], "Thursday" => [], "Friday" => [], "Saturday" => [] }
+    medications_day = {
+      "Sunday" => [],
+      "Monday" => [],
+      "Tuesday" => [],
+      "Wednesday" => [],
+      "Thursday" => [],
+      "Friday" => [],
+      "Saturday" => [],
+    }
     today = Time.now.to_date
     medications.each do |med|
       if med.class == Medication_interval
@@ -282,7 +290,16 @@ class App
         end
       end
     end
-    pp medications_day
+    schedule_1week = medications_day.to_a.rotate(Time.now.to_date.wday)
+    schedule_1week.each do |day|
+      header = "\n----- #{day.first} -----"
+      puts header
+      day.last.each(&:display_medication_short)
+      header.length.times do
+        print "-"
+      end
+      puts "\n"
+    end
     continue
   end
 

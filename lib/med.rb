@@ -36,6 +36,14 @@ class Medication_weekly < Medication
     end
   end
 
+  def display_medication_short
+    puts "Medication name: \n#{@name}"
+    puts "Times taken: "
+    @times_taken.each do |time|
+      puts "#{time[:hour]}:#{time[:minute]}"
+    end
+  end
+
   def edit_medication(name, days_taken, times_taken)
     @name = name
     @days_taken = days_taken
@@ -61,6 +69,14 @@ class Medication_interval < Medication
       puts "#{time[:hour]}:#{time[:minute]}"
     end
     puts "Date of first dose: \n#{@date_first_taken}"
+  end
+
+  def display_medication_short
+    puts "Medication name: \n#{@name}"
+    puts "Times taken: "
+    @times_taken.each do |time|
+      puts "#{time[:hour]}:#{time[:minute]}"
+    end
   end
 
   def edit_medication(name, interval, times_taken, date_first_taken)
