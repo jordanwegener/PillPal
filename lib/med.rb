@@ -87,9 +87,7 @@ class Medication_interval < Medication
 
   def check_needed(date)
     epoch = Date.new(1970, 1, 1)
-    first_dose_day = (@date_first_taken - epoch).to_i
-    check_date = (date - epoch).to_i
-    if ((check_date - first_dose_day) % @interval) == 0
+    if ((((date - epoch).to_i) - ((@date_first_taken - epoch).to_i)) % @interval) == 0
       return true
     else
       return false
