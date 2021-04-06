@@ -1,5 +1,7 @@
 # This file contains all medication entry classes
 
+require "date"
+
 class Medication
   attr_accessor :name, :inventory, :inventory_threshold
 
@@ -67,6 +69,14 @@ class Medication_interval < Medication
     @times_taken = times_taken
   end
 
-  def check_needed()
+  def check_needed(date)
+    epoch = Date.new(1970, 1, 1)
+    first_dose_day = (@date_first_taken - epoch).to_i
+    check_date = (date - epoch).to_i
+    if ((check_date - first_dose_day) % @interval) == 0
+      return true
+    else
+      return false
+    end
   end
 end

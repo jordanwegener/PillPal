@@ -30,7 +30,7 @@ class App
       menu.choice "View, edit or delete existing medications", 2
       menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
       menu.choice "Get 3, 6 or 12 hour schedule", 4, disabled: "(not yet implemented)"
-      menu.choice "Get 1 week or 2 week schedule", 5, disabled: "(not yet implemented)"
+      menu.choice "Get 1 week or 2 week schedule", 5
       menu.choice "Get a schedule for a specific date range", 6, disabled: "(not yet implemented)"
       menu.choice "Exit", 7
     end
@@ -259,6 +259,14 @@ class App
       end
     end
     return times
+  end
+
+  def long_schedule_menu
+    clear
+    titlebar
+    puts "--------- 2 Week Schedule ---------\n\n"
+    medications.each do |medication|
+    end
   end
 
   def clear
