@@ -3,6 +3,7 @@ require "tty-prompt"
 require "tod"
 require "io/console"
 require "date"
+require "time"
 require_relative ("med.rb")
 
 class App
@@ -30,7 +31,7 @@ class App
       menu.choice "View, edit or delete existing medications", 2
       menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
       menu.choice "Get 3, 6 or 12 hour schedule", 4, disabled: "(not yet implemented)"
-      menu.choice "Get 1 week or 2 week schedule", 5
+      menu.choice "Get 1 week schedule", 5
       menu.choice "Get a schedule for a specific date range", 6, disabled: "(not yet implemented)"
       menu.choice "Exit", 7
     end
@@ -52,7 +53,7 @@ class App
     when 4
       short_schedule_menu
     when 5
-      long_schedule_menu
+      week_schedule
     when 6
       date_range_menu
     when 7
@@ -154,22 +155,21 @@ class App
     choices = ["Today", "Tomorrow", "In 2 days", "In 3 days", "In 4 days", "In 5 days", "In 6 days"]
     (choices.length - medication_interval).times { choices.pop }
     choice = @prompt.select("When will you take the first dose?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
-    today = Date.today
     case choice
     when "Today"
-      medication_date_first_taken = today
+      medication_date_first_taken = Date.today
     when "Tomorrow"
-      medication_date_first_taken = today += 1
+      medication_date_first_taken = Date.today + 1
     when "In 2 days"
-      medication_date_first_taken = today += 2
+      medication_date_first_taken = Date.today + 2
     when "In 3 days"
-      medication_date_first_taken = today += 3
+      medication_date_first_taken = Date.today + 3
     when "In 4 days"
-      medication_date_first_taken = today += 4
+      medication_date_first_taken = Date.today + 4
     when "In 5 days"
-      medication_date_first_taken = today += 5
+      medication_date_first_taken = Date.today + 5
     when "In 6 days"
-      medication_date_first_taken = today += 6
+      medication_date_first_taken = Date.today + 6
     end
     return medication_date_first_taken
   end
@@ -261,12 +261,29 @@ class App
     return times
   end
 
-  def long_schedule_menu
+  def week_schedule
     clear
     titlebar
-    puts "--------- 2 Week Schedule ---------\n\n"
-    medications.each do |medication|
+    puts "--------- 1 Week Schedule ---------\n\n"
+    medications_day = { "Sunday" => [], "Monday" => [], "Tuesday" => [], "Wednesday" => [], "Thursday" => [], "Friday" => [], "Saturday" => [] }
+    today = Time.now.to_date
+    medications.each do |med|
+      if med.class == Medication_interval
+        date_counter = 0
+        while date_counter < 7
+          if med.check_needed(today + date_counter)
+            medications_day[(today + date_counter).strftime("%A")] << med
+          end
+          date_counter += 1
+        end
+      elsif med.class == Medication_weekly
+        med.days_taken.each do |day|
+          medications_day[(today + date_counter).strftime("%A")] << med
+        end
+      end
     end
+    pp medications_day
+    continue
   end
 
   def clear
