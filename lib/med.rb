@@ -3,7 +3,7 @@
 require "date"
 
 class Medication
-  attr_accessor :name, :inventory, :inventory_threshold
+  attr_accessor :name, :inventory, :inventory_threshold, :dose, :number_taken
 
   def initialize(name)
     @name = name
@@ -18,18 +18,23 @@ end
 class MedicationWeekly < Medication
   attr_accessor :days_taken, :times_taken
 
-  def initialize(name, days_taken, times_taken)
+  def initialize(name, dose, number_taken, days_taken, times_taken)
     @name = name
+    @dose = dose
+    @number_taken = number_taken
     @days_taken = days_taken
     @times_taken = times_taken
   end
 
   def display_medication
-    puts "Medication name: \n#{@name}"
+    puts "Medication name: \n#{@name}\n\n"
+    puts "Dose: \n#{@dose}\n\n"
+    puts "Number taken: #{@number_taken}\n\n"
     puts "Days taken: "
     @days_taken.each do |day|
       puts day
     end
+    puts "\n"
     puts "Times taken: "
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}"
@@ -37,7 +42,8 @@ class MedicationWeekly < Medication
   end
 
   def display_medication_short
-    puts "\nMedication name: \n#{@name}"
+    puts "\nMedication name: \n#{@name}\n\n"
+    puts "Number taken: #{@number_taken}\n\n"
     puts "Times taken: "
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}\n"
@@ -54,25 +60,31 @@ end
 class MedicationInterval < Medication
   attr_accessor :interval, :times_taken, :date_first_taken
 
-  def initialize(name, interval, times_taken, date_first_taken)
+  def initialize(name, dose, number_taken, interval, times_taken, date_first_taken)
     @name = name
+    @dose = dose
+    @number_taken = number_taken
     @interval = interval
     @times_taken = times_taken
     @date_first_taken = date_first_taken
   end
 
   def display_medication
-    puts "Medication name: \n#{@name}"
-    puts "Dose interval: \n#{@interval} days"
+    puts "Medication name: \n#{@name}\n\n"
+    puts "Dose: \n#{@dose}\n\n"
+    puts "Number taken: #{@number_taken}\n\n"
+    puts "Dose interval: \n#{@interval} days\n\n"
     puts "Times taken: "
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}"
     end
+    puts "\n"
     puts "Date of first dose: \n#{@date_first_taken}"
   end
 
   def display_medication_short
-    puts "\nMedication name: \n#{@name}"
+    puts "\nMedication name: \n#{@name}\n\n"
+    puts "Number taken: #{@number_taken}\n\n"
     puts "Times taken: "
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}\n"

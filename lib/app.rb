@@ -95,13 +95,17 @@ class App
     titlebar
     puts "Add medication taken on weekly schedule\n\n"
     medication_name = @prompt.ask("What is the name of the medication?")
+    medication_dose = @prompt.ask("What is the dose of each pill?")
+    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_times_taken = time_input
-    @medications.push(MedicationWeekly.new(medication_name, medication_days_taken, medication_times_taken))
+    @medications.push(MedicationWeekly.new(medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken))
     clear
     titlebar
-    puts "Medication added!\n"
+    puts "Medication added!\n\n"
     medications.last.display_medication
     continue
   end
@@ -111,13 +115,17 @@ class App
     titlebar
     puts "Edit medication\n\n"
     medication_name = @prompt.ask("What is the new name of the medication?")
+    medication_dose = @prompt.ask("What is the dose of each pill?")
+    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_times_taken = time_input
-    @medications[index].edit_medication(medication_name, medication_days_taken, medication_times_taken)
+    @medications[index].edit_medication(medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken)
     clear
     titlebar
-    puts "Medication updated!\n"
+    puts "Medication updated!\n\n"
     medications[index].display_medication
     continue
   end
@@ -127,11 +135,15 @@ class App
     titlebar
     puts "Add medication taken at intervals\n\n"
     medication_name = @prompt.ask("What is the name of the medication?")
+    medication_dose = @prompt.ask("What is the dose of each pill?")
+    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
     medication_date_first_taken = get_date_taken(medication_interval)
-    @medications.push(MedicationInterval.new(medication_name, medication_interval, medication_times_taken, medication_date_first_taken))
-    puts "Medication added!\n"
+    @medications.push(MedicationInterval.new(medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken, medication_date_first_taken))
+    puts "Medication added!\n\n"
     medications.last.display_medication
     continue
   end
@@ -141,12 +153,16 @@ class App
     titlebar
     puts "Edit medication\n\n"
     medication_name = @prompt.ask("What is the new name of the medication?")
+    medication_dose = @prompt.ask("What is the dose of each pill?")
+    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
-    @medications[index].edit_medication(medication_name, medication_interval, medication_times_taken)
+    @medications[index].edit_medication(medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken)
     clear
     titlebar
-    puts "Medication updated!\n"
+    puts "Medication updated!\n\n"
     medications[index].display_medication
     continue
   end
@@ -312,6 +328,7 @@ class App
   end
 
   def continue
+    puts "\n"
     print "Press any key to continue..."
     STDIN.getch
   end
