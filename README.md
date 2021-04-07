@@ -25,7 +25,7 @@ PillPal uses the following dependencies, which can be installed from the ```/src
 
 ## Usage
 
-### Using menu
+### Using menus
 
 ### Using arguments
 

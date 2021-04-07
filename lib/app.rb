@@ -29,9 +29,9 @@ class App
       menu.per_page 10
       menu.choice "Add new medications", 1
       menu.choice "View, edit or delete existing medications", 2
+      menu.choice "Get 1 week schedule", 5
       menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
       menu.choice "Get 3, 6 or 12 hour schedule", 4, disabled: "(not yet implemented)"
-      menu.choice "Get 1 week schedule", 5
       menu.choice "Get a schedule for a specific date range", 6, disabled: "(not yet implemented)"
       menu.choice "Exit", 7
     end
@@ -98,7 +98,7 @@ class App
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_times_taken = time_input
-    @medications.push(Medication_weekly.new(medication_name, medication_days_taken, medication_times_taken))
+    @medications.push(MedicationWeekly.new(medication_name, medication_days_taken, medication_times_taken))
     clear
     titlebar
     puts "Medication added!\n"
@@ -130,7 +130,7 @@ class App
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
     medication_date_first_taken = get_date_taken(medication_interval)
-    @medications.push(Medication_interval.new(medication_name, medication_interval, medication_times_taken, medication_date_first_taken))
+    @medications.push(MedicationInterval.new(medication_name, medication_interval, medication_times_taken, medication_date_first_taken))
     puts "Medication added!\n"
     medications.last.display_medication
     continue
@@ -195,9 +195,9 @@ class App
         display_all_medications
         choice = @prompt.ask("Which entry would you like to edit?\n\nEnter a number to edit or q to cancel.\nCareful, this is permanent!")
         if choice.is_integer? && choice.to_i > 0
-          if medications[choice.to_i - 1].class == Medication_weekly
+          if medications[choice.to_i - 1].class == MedicationWeekly
             edit_medication_weekly(choice.to_i)
-          elsif medications[choice.to_i - 1].class == Medication_interval
+          elsif medications[choice.to_i - 1].class == MedicationInterval
             edit_medication_interval(choice.to_i - 1)
           end
         else
@@ -274,9 +274,9 @@ class App
       "Friday" => [],
       "Saturday" => [],
     }
-    today = Time.now.to_date
+    today = Date.today
     medications.each do |med|
-      if med.class == Medication_interval
+      if med.class == MedicationInterval
         date_counter = 0
         while date_counter < 7
           if med.check_needed(today + date_counter)
@@ -284,17 +284,21 @@ class App
           end
           date_counter += 1
         end
-      elsif med.class == Medication_weekly
+      elsif med.class == MedicationWeekly
         med.days_taken.each do |day|
-          medications_day[(today + date_counter).strftime("%A")] << med
+          medications_day[day] << med
         end
       end
     end
-    schedule_1week = medications_day.to_a.rotate(Time.now.to_date.wday)
+    schedule_1week = medications_day.to_a.rotate(Date.today.wday)
     schedule_1week.each do |day|
       header = "\n----- #{day.first} -----"
       puts header
-      day.last.each(&:display_medication_short)
+      if day.last == []
+        puts "\nNo medications\n"
+      else
+        day.last.each(&:display_medication_short)
+      end
       header.length.times do
         print "-"
       end
