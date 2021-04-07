@@ -1,6 +1,8 @@
 # This file contains all medication entry classes
 
 require "date"
+require "tod"
+require "tod/core_extensions"
 
 class Medication
   attr_accessor :name, :inventory, :inventory_threshold, :dose, :number_taken
@@ -54,6 +56,25 @@ class MedicationWeekly < Medication
     @name = name
     @days_taken = days_taken
     @times_taken = times_taken
+  end
+
+  def take_within_hours(hours)
+    start = Time.now
+
+    day = 24 * 3600
+    final = start + (hours * 3600)
+    @times_taken.filter do |time_stamp|
+      if time_stamp[:hour].to_i > start.hour
+        time_stamp = Time.new(2021, 4, 7, time_stamp[:hour].to_i, time_stamp[:minute].to_i)
+      else
+        time_stamp = Time.new(2021, 4, 8, time_stamp[:hour].to_i, time_stamp[:minute].to_i)
+      end
+      @days_taken.include?(time_stamp.strftime("%A")) && time_stamp >= start && time_stamp <= final
+      puts "#{name}"
+      @times_taken.each do |time|
+        puts "#{time[:hour]}:#{time[:minute]}"
+      end
+    end
   end
 end
 

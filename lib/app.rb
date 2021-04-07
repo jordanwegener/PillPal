@@ -30,8 +30,8 @@ class App
       menu.choice "Add new medications", 1
       menu.choice "View, edit or delete existing medications", 2
       menu.choice "Get 1 week schedule", 5
+      menu.choice "Get 3, 6 or 12 hour schedule", 4
       menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
-      menu.choice "Get 3, 6 or 12 hour schedule", 4, disabled: "(not yet implemented)"
       menu.choice "Get a schedule for a specific date range", 6, disabled: "(not yet implemented)"
       menu.choice "Exit", 7
     end
@@ -51,7 +51,7 @@ class App
     when 3
       inventory_menu
     when 4
-      short_schedule_menu
+      schedule_short
     when 5
       week_schedule
     when 6
@@ -233,6 +233,20 @@ class App
         break
       end
     end
+  end
+
+  def schedule_short
+    choice = @prompt.select("What time period would you like to print a schedule for?") do |menu|
+      menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
+      menu.show_help :always
+      menu.choice "3 hours", 3
+      menu.choice "6 hours", 6
+      menu.choice "12 hours", 12
+    end
+    medications.each do |med|
+      med.take_within_hours(choice)
+    end
+    continue
   end
 
   def display_all_medications
