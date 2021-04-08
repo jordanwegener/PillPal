@@ -45,7 +45,7 @@ class App
     puts "-------------- PillPal --------------\n\n"
   end
 
-  def add_medication_menu
+  def add_medication_menu(argv = false)
     clear
     titlebar
     puts "---------- Add Medication ----------\n\n"
@@ -63,23 +63,32 @@ class App
       add_medication_interval
     when 3
       clear
+    end
+    if argv
+      exit
+    else
+      clear
       main_menu
     end
+  end
+
+  def medication_weekly_input
+    medication_name = @prompt.ask("What is the name of the medication?", required: :true)
+    medication_dose = @prompt.ask("What is the dose of each pill?", required: :true)
+    medication_number_taken = @prompt.ask("How many do you take at a time?", required: :true) do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
+    choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
+    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
+    medication_times_taken = time_input
+    return medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken
   end
 
   def add_medication_weekly
     clear
     titlebar
     puts "Add medication taken on weekly schedule\n\n"
-    medication_name = @prompt.ask("What is the name of the medication?")
-    medication_dose = @prompt.ask("What is the dose of each pill?")
-    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
-      input.convert(:int, "Invalid input. Please provide a number.")
-    end
-    choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
-    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
-    medication_times_taken = time_input
-    @medications.push(MedicationWeekly.new(medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken))
+    @medications << MedicationWeekly.new(*medication_weekly_input)
     write_to_file
     clear
     titlebar
@@ -92,15 +101,7 @@ class App
     clear
     titlebar
     puts "Edit medication\n\n"
-    medication_name = @prompt.ask("What is the new name of the medication?")
-    medication_dose = @prompt.ask("What is the dose of each pill?")
-    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
-      input.convert(:int, "Invalid input. Please provide a number.")
-    end
-    choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
-    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
-    medication_times_taken = time_input
-    @medications[index].edit_medication(medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken)
+    @medications[index].edit_medication(*medication_weekly_input)
     write_to_file
     clear
     titlebar
@@ -109,19 +110,25 @@ class App
     continue
   end
 
+  def medication_interval_input
+    medication_name = @prompt.ask("What is the name of the medication?", required: :true)
+    medication_dose = @prompt.ask("What is the dose of each pill?", required: :true)
+    medication_number_taken = @prompt.ask("How many do you take at a time?", required: :true) do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
+    medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", required: :true) do |input|
+      input.convert(:int, "Invalid input. Please provide a number.")
+    end
+    medication_times_taken = time_input
+    medication_date_first_taken = get_date_taken(medication_interval)
+    return medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken, medication_date_first_taken
+  end
+
   def add_medication_interval
     clear
     titlebar
     puts "Add medication taken at intervals\n\n"
-    medication_name = @prompt.ask("What is the name of the medication?")
-    medication_dose = @prompt.ask("What is the dose of each pill?")
-    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
-      input.convert(:int, "Invalid input. Please provide a number.")
-    end
-    medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
-    medication_times_taken = time_input
-    medication_date_first_taken = get_date_taken(medication_interval)
-    @medications.push(MedicationInterval.new(medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken, medication_date_first_taken))
+    @medications << MedicationInterval.new(*medication_interval_input)
     write_to_file
     clear
     titlebar
@@ -134,14 +141,7 @@ class App
     clear
     titlebar
     puts "Edit medication\n\n"
-    medication_name = @prompt.ask("What is the new name of the medication?")
-    medication_dose = @prompt.ask("What is the dose of each pill?")
-    medication_number_taken = @prompt.ask("How many do you take at a time?") do |input|
-      input.convert(:int, "Invalid input. Please provide a number.")
-    end
-    medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
-    medication_times_taken = time_input
-    @medications[index].edit_medication(medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken)
+    @medications[index].edit_medication(*medication_interval_input)
     write_to_file
     clear
     titlebar
@@ -166,7 +166,8 @@ class App
 
   def delete_medication
     display_all_medications
-    choice = @prompt.ask("Which entry would you like to delete?\n\nEnter a number to delete or q to cancel.\nCareful, this is permanent!", echo: :off)
+    puts "Which entry would you like to delete?\n\n"
+    choice = @prompt.ask("Enter a number to delete or q to cancel.", help: "Careful, this is permanent!", show_help: :always)
     if choice.is_integer? && choice.to_i > 0
       medications.delete_at(choice.to_i - 1)
       puts "\nEntry deleted!"
@@ -186,7 +187,6 @@ class App
     choices = ["Today", "Tomorrow", "In 2 days", "In 3 days", "In 4 days", "In 5 days", "In 6 days"]
 
     choices = choices.slice(0, medication_interval)
-    # (choices.length - medication_interval).times { choices.pop }
     choice = @prompt.select("When will you take the first dose?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     case choice
     when "Today"
@@ -207,7 +207,7 @@ class App
     return medication_date_first_taken
   end
 
-  def medications_menu
+  def medications_menu(argv = false)
     loop do
       clear
       titlebar
@@ -231,14 +231,18 @@ class App
         delete_medication
         write_to_file
       when 4
-        break
+        if argv
+          exit
+        else
+          break
+        end
       end
     end
   end
 
   def time_input
     times = []
-    input = @prompt.ask("What is the first (or only) time of day you have to take this medication?")
+    input = @prompt.ask("What is the first (or only) time of day you have to take this medication?", required: :true)
     time_taken = Tod::TimeOfDay.parse(input)
     times.push({ hour: time_taken.hour.to_s.rjust(2, "0"), minute: time_taken.minute.to_s.rjust(2, "0"), second_of_day: time_taken.second_of_day })
     continue = @prompt.yes?("Do you need to add additional times when this medication is taken?")
@@ -256,7 +260,7 @@ class App
     return times
   end
 
-  def schedule_week
+  def schedule_week(argv = false)
     clear
     titlebar
     puts "--------- 1 Week Schedule ---------\n\n"
@@ -285,7 +289,6 @@ class App
         end
       end
     end
-
     schedule_1week = medications_day.to_a.rotate(Date.today.wday)
     schedule_1week.each do |day|
       header = "\n----- #{day.first} -----"
@@ -301,15 +304,17 @@ class App
       puts "\n"
     end
     continue
+    exit if argv
   end
 
-  def schedule_short
+  def schedule_short(argv = false)
     choices = [{ name: "3 hours", value: 3 }, { name: "6 hours", value: 6 }, { name: "12 hours", value: 12 }, { name: "24 hours", value: 24 }]
     choice = @prompt.select("What time period would you like to print a schedule for?", choices, help: "(Choose using ↑/↓ arrow keys, press Enter to select)", show_help: :always)
     medications.each do |med|
       med.take_within_hours(choice)
     end
     continue
+    exit if argv
   end
 
   def display_all_medications
@@ -339,8 +344,7 @@ class App
   end
 
   def continue
-    puts "\n"
-    print "Press any key to continue..."
+    print "\n\nPress any key to continue..."
     STDIN.getch
   end
 
