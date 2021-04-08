@@ -60,8 +60,6 @@ class MedicationWeekly < Medication
 
   def take_within_hours(hours)
     start = Time.now
-
-    day = 24 * 3600
     final = start + (hours * 3600)
     pills_to_take = @times_taken.filter do |time_stamp|
       if time_stamp[:hour].to_i > start.hour
@@ -71,9 +69,8 @@ class MedicationWeekly < Medication
       end
       @days_taken.include?(time_stamp.strftime("%A")) && time_stamp >= start && time_stamp <= final
     end
-    puts name
     pills_to_take.each do |time|
-      puts "#{time[:hour]}:#{time[:minute]}"
+      puts "\nTake #{@number_taken} of #{@name} (#{dose}) at #{time[:hour]}:#{time[:minute]}\n"
     end
   end
 end
@@ -120,10 +117,23 @@ class MedicationInterval < Medication
 
   def check_needed(date)
     epoch = Date.new(1970, 1, 1)
-    if ((((date - epoch).to_i) - ((@date_first_taken - epoch).to_i)) % @interval) == 0
-      return true
-    else
-      return false
+    ((((date - epoch).to_i) - ((@date_first_taken - epoch).to_i)) % @interval) == 0
+  end
+
+  def take_within_hours(hours)
+    start = Time.now
+    day = 24 * 3600
+    final = start + (hours * 3600)
+    pills_to_take = @times_taken.filter do |time_stamp|
+      if time_stamp[:hour].to_i > start.hour
+        time_stamp = Time.new(start.year, start.month, start.day, time_stamp[:hour].to_i, time_stamp[:minute].to_i)
+      else
+        time_stamp = Time.new(start.year, start.month, start.day + 1, time_stamp[:hour].to_i, time_stamp[:minute].to_i)
+      end
+      self.check_needed(time_stamp.to_date) && time_stamp >= start && time_stamp <= final
+    end
+    pills_to_take.each do |time|
+      puts "\nTake #{@number_taken} of #{@name} (#{dose}) at #{time[:hour]}:#{time[:minute]}\n"
     end
   end
 end

@@ -11,7 +11,7 @@ class App
 
   def initialize
     @prompt = TTY::Prompt.new(symbols: { marker: "→" })
-    @medications = []
+    @medications = read_from_file
   end
 
   def run
@@ -23,49 +23,26 @@ class App
 
   def main_menu
     titlebar
-    choice = @prompt.select("Please choose from the following options.\n\n") do |menu|
-      menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
-      menu.show_help :always
-      menu.per_page 10
-      menu.choice "Add new medications", 1
-      menu.choice "View, edit or delete existing medications", 2
-      menu.choice "Get 1 week schedule", 5
-      menu.choice "Get 3, 6 or 12 hour schedule", 4
-      menu.choice "View and edit medication inventories and rebuy alerts", 3, disabled: "(not yet implemented)"
-      menu.choice "Get a schedule for a specific date range", 6, disabled: "(not yet implemented)"
-      menu.choice "Exit", 7
-    end
-    process_menu_input(choice)
+    choices = [
+      { name: "Add new medications", value: -> { add_medication_menu } },
+      { name: "View, edit or delete existing medications", value: -> { medications_menu } },
+      { name: "Get 1 week schedule", value: -> { schedule_week } },
+      { name: "Get 3, 6 or 12 hour schedule", value: -> { schedule_short } },
+      { name: "Exit", value: -> {
+        clear
+        titlebar
+        puts "Thanks for using PillPal!"
+        sleep(2)
+        clear
+        write_to_file
+        exit
+      } },
+    ]
+    choice = @prompt.select("Please choose from the following options.\n\n", choices, help: "(Choose using ↑/↓ arrow keys, press Enter to select)", show_help: :always, per_page: 10)
   end
 
   def titlebar
     puts "-------------- PillPal --------------\n\n"
-  end
-
-  def process_menu_input(input)
-    case input
-    when 1
-      add_medication_menu
-    when 2
-      medications_menu
-    when 3
-      inventory_menu
-    when 4
-      schedule_short
-    when 5
-      week_schedule
-    when 6
-      date_range_menu
-    when 7
-      clear
-      titlebar
-      puts "Thanks for using PillPal!"
-      sleep(2)
-      clear
-      exit
-    else
-      puts "Invalid selection" # REPLACE WITH PROPER ERROR HANDLING
-    end
   end
 
   def add_medication_menu
@@ -103,6 +80,7 @@ class App
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_times_taken = time_input
     @medications.push(MedicationWeekly.new(medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken))
+    write_to_file
     clear
     titlebar
     puts "Medication added!\n\n"
@@ -123,6 +101,7 @@ class App
     medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_times_taken = time_input
     @medications[index].edit_medication(medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken)
+    write_to_file
     clear
     titlebar
     puts "Medication updated!\n\n"
@@ -143,6 +122,9 @@ class App
     medication_times_taken = time_input
     medication_date_first_taken = get_date_taken(medication_interval)
     @medications.push(MedicationInterval.new(medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken, medication_date_first_taken))
+    write_to_file
+    clear
+    titlebar
     puts "Medication added!\n\n"
     medications.last.display_medication
     continue
@@ -160,6 +142,7 @@ class App
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", convert: :int)
     medication_times_taken = time_input
     @medications[index].edit_medication(medication_name, medication_dose, medication_number_taken, medication_interval, medication_times_taken)
+    write_to_file
     clear
     titlebar
     puts "Medication updated!\n\n"
@@ -167,9 +150,43 @@ class App
     continue
   end
 
+  def edit_medication
+    display_all_medications
+    choice = @prompt.ask("Which entry would you like to edit?\n\nEnter a number to edit or q to cancel.\nCareful, this is permanent!")
+    if choice.is_integer? && choice.to_i > 0
+      if medications[choice.to_i - 1].class == MedicationWeekly
+        edit_medication_weekly(choice.to_i)
+      elsif medications[choice.to_i - 1].class == MedicationInterval
+        edit_medication_interval(choice.to_i - 1)
+      end
+    else
+      medications_menu
+    end
+  end
+
+  def delete_medication
+    display_all_medications
+    choice = @prompt.ask("Which entry would you like to delete?\n\nEnter a number to delete or q to cancel.\nCareful, this is permanent!", echo: :off)
+    if choice.is_integer? && choice.to_i > 0
+      medications.delete_at(choice.to_i - 1)
+      puts "\nEntry deleted!"
+      continue
+    elsif choice.upcase = "Q"
+      puts "\n Delete cancelled."
+      continue
+      medications_menu
+    else
+      puts "\nInvalid input, delete cancelled."
+      continue
+      medications_menu
+    end
+  end
+
   def get_date_taken(medication_interval)
     choices = ["Today", "Tomorrow", "In 2 days", "In 3 days", "In 4 days", "In 5 days", "In 6 days"]
-    (choices.length - medication_interval).times { choices.pop }
+
+    choices = choices.slice(0, medication_interval)
+    # (choices.length - medication_interval).times { choices.pop }
     choice = @prompt.select("When will you take the first dose?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     case choice
     when "Today"
@@ -208,65 +225,13 @@ class App
         display_all_medications
         continue
       when 2
-        display_all_medications
-        choice = @prompt.ask("Which entry would you like to edit?\n\nEnter a number to edit or q to cancel.\nCareful, this is permanent!")
-        if choice.is_integer? && choice.to_i > 0
-          if medications[choice.to_i - 1].class == MedicationWeekly
-            edit_medication_weekly(choice.to_i)
-          elsif medications[choice.to_i - 1].class == MedicationInterval
-            edit_medication_interval(choice.to_i - 1)
-          end
-        else
-          medications_menu
-        end
+        edit_medication
+        write_to_file
       when 3
-        display_all_medications
-        choice = @prompt.ask("Which entry would you like to delete?\n\nEnter a number to delete or q to cancel.\nCareful, this is permanent!")
-        if choice.is_integer? && choice.to_i > 0
-          medications.delete_at(choice.to_i - 1)
-          puts "\nEntry deleted!"
-          continue
-        else
-          medications_menu
-        end
+        delete_medication
+        write_to_file
       when 4
         break
-      end
-    end
-  end
-
-  def schedule_short
-    choice = @prompt.select("What time period would you like to print a schedule for?") do |menu|
-      menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
-      menu.show_help :always
-      menu.choice "3 hours", 3
-      menu.choice "6 hours", 6
-      menu.choice "12 hours", 12
-    end
-    medications.each do |med|
-      med.take_within_hours(choice)
-    end
-    continue
-  end
-
-  def display_all_medications
-    if medications.length > 0
-      puts "Current medications:\n\n"
-      i = 1
-      medications.each do |medication|
-        puts "--------- #{i} ---------\n"
-        medication.display_medication
-        puts "\n---------------------\n\n"
-        i += 1
-      end
-    else
-      puts "\nThere are no medications yet...\n\n"
-      goto_wizard = @prompt.yes?("Would you like to add your first one now?")
-      if goto_wizard == true
-        add_medication_menu
-      else
-        clear
-        main_menu
       end
     end
   end
@@ -291,7 +256,7 @@ class App
     return times
   end
 
-  def week_schedule
+  def schedule_week
     clear
     titlebar
     puts "--------- 1 Week Schedule ---------\n\n"
@@ -320,6 +285,7 @@ class App
         end
       end
     end
+
     schedule_1week = medications_day.to_a.rotate(Date.today.wday)
     schedule_1week.each do |day|
       header = "\n----- #{day.first} -----"
@@ -337,6 +303,37 @@ class App
     continue
   end
 
+  def schedule_short
+    choices = [{ name: "3 hours", value: 3 }, { name: "6 hours", value: 6 }, { name: "12 hours", value: 12 }, { name: "24 hours", value: 24 }]
+    choice = @prompt.select("What time period would you like to print a schedule for?", choices, help: "(Choose using ↑/↓ arrow keys, press Enter to select)", show_help: :always)
+    medications.each do |med|
+      med.take_within_hours(choice)
+    end
+    continue
+  end
+
+  def display_all_medications
+    if medications.length > 0
+      puts "Current medications:\n\n"
+      i = 1
+      medications.each do |medication|
+        puts "--------- #{i} ---------\n"
+        medication.display_medication
+        puts "\n---------------------\n\n"
+        i += 1
+      end
+    else
+      puts "\nThere are no medications yet...\n\n"
+      goto_wizard = @prompt.yes?("Would you like to add your first one now?")
+      if goto_wizard == true
+        add_medication_menu
+      else
+        clear
+        main_menu
+      end
+    end
+  end
+
   def clear
     system("clear") || system("cls")
   end
@@ -345,6 +342,15 @@ class App
     puts "\n"
     print "Press any key to continue..."
     STDIN.getch
+  end
+
+  def write_to_file
+    File.write("med.sav", Marshal.dump(medications))
+  end
+
+  def read_from_file
+    return [] unless File.exist?("med.sav")
+    medications = Marshal.load(File.read("med.sav"))
   end
 end
 
