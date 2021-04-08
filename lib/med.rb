@@ -3,6 +3,7 @@
 require "date"
 require "tod"
 require "tod/core_extensions"
+require "colorize"
 
 class Medication
   attr_accessor :name, :inventory, :inventory_threshold, :dose, :number_taken
@@ -29,27 +30,32 @@ class MedicationWeekly < Medication
   end
 
   def display_medication
-    puts "Medication name: \n#{@name}\n\n"
-    puts "Dose: \n#{@dose}\n\n"
-    puts "Number taken: #{@number_taken}\n\n"
-    puts "Days taken: "
+    puts "Medication name:".colorize(:cyan)
+    puts "#{@name}".colorize(:light_cyan)
+    puts "Dose: ".colorize(:light_magenta)
+    puts "#{@dose}"
+    puts "Number taken: ".colorize(:light_magenta)
+    puts "#{@number_taken}"
+    puts "Days taken: ".colorize(:light_magenta)
     @days_taken.each do |day|
       puts day
     end
-    puts "\n"
-    puts "Times taken: "
+    puts "Times taken: ".colorize(:light_magenta)
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}"
     end
   end
 
   def display_medication_short
-    puts "\nMedication name: \n#{@name}\n\n"
-    puts "Number taken: #{@number_taken}\n\n"
-    puts "Times taken: "
+    puts "\nMedication name: ".colorize(:cyan)
+    puts "#{@name}".colorize(:light_cyan)
+    puts "Number taken: ".colorize(:light_magenta)
+    puts "#{@number_taken}"
+    puts "Times taken: ".colorize(:light_magenta)
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}\n"
     end
+    puts "\n"
   end
 
   def edit_medication(name, days_taken, times_taken)
@@ -70,7 +76,7 @@ class MedicationWeekly < Medication
       @days_taken.include?(time_stamp.strftime("%A")) && time_stamp >= start && time_stamp <= final
     end
     pills_to_take.each do |time|
-      puts "\nTake #{@number_taken} of #{@name} (#{dose}) at #{time[:hour]}:#{time[:minute]}\n"
+      puts "\nTake " + "#{@number_taken}".colorize(:cyan) + " of " + "#{@name} (#{dose})".colorize(:magenta) + " at " + "#{time[:hour]}:#{time[:minute]}".colorize(:yellow) + "\n"
     end
   end
 end
@@ -88,31 +94,41 @@ class MedicationInterval < Medication
   end
 
   def display_medication
-    puts "Medication name: \n#{@name}\n\n"
-    puts "Dose: \n#{@dose}\n\n"
-    puts "Number taken: #{@number_taken}\n\n"
-    puts "Dose interval: \n#{@interval} days\n\n"
-    puts "Times taken: "
+    puts "Medication name: ".colorize(:cyan)
+    puts "#{@name}".colorize(:light_cyan)
+    puts "Dose: ".colorize(:light_magenta)
+    puts "#{@dose}"
+    puts "Number taken: ".colorize(:light_magenta)
+    puts "#{@number_taken}"
+    puts "Dose interval: ".colorize(:light_magenta)
+    puts "#{@interval} days"
+    puts "Times taken: ".colorize(:light_magenta)
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}"
     end
-    puts "\n"
-    puts "Date of first dose: \n#{@date_first_taken}"
+    puts "Date of first dose: ".colorize(:light_magenta)
+    puts "#{@date_first_taken}"
   end
 
   def display_medication_short
-    puts "\nMedication name: \n#{@name}\n\n"
-    puts "Number taken: #{@number_taken}\n\n"
-    puts "Times taken: "
+    puts "\nMedication name: ".colorize(:cyan)
+    puts "#{@name}".colorize(:light_cyan)
+    puts "Number taken: ".colorize(:light_magenta)
+    puts "#{@number_taken}"
+    puts "Times taken: ".colorize(:light_magenta)
     @times_taken.each do |time|
       puts "#{time[:hour]}:#{time[:minute]}\n"
     end
+    puts "\n"
   end
 
-  def edit_medication(name, interval, times_taken, date_first_taken)
+  def edit_medication(name, dose, number_taken, interval, times_taken, date_first_taken)
     @name = name
+    @dose = dose
+    @number_taken = number_taken
     @interval = interval
     @times_taken = times_taken
+    @date_first_taken = date_first_taken
   end
 
   def check_needed(date)
@@ -133,7 +149,7 @@ class MedicationInterval < Medication
       self.check_needed(time_stamp.to_date) && time_stamp >= start && time_stamp <= final
     end
     pills_to_take.each do |time|
-      puts "\nTake #{@number_taken} of #{@name} (#{dose}) at #{time[:hour]}:#{time[:minute]}\n"
+      puts "\nTake " + "#{@number_taken}".colorize(:cyan) + " of " + "#{@name} (#{dose})".colorize(:magenta) + " at " + "#{time[:hour]}:#{time[:minute]}".colorize(:yellow) + "\n"
     end
   end
 end

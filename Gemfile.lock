@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    colorize (0.8.1)
     pastel (0.8.0)
       tty-color (~> 0.5)
     tod (3.0.0)
@@ -20,6 +21,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  colorize (~> 0.8.1)
   tod
   tty-prompt
 
