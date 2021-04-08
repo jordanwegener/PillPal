@@ -82,7 +82,7 @@ class App
       input.convert(:int, "Invalid input. Please provide a number.")
     end
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
-    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
+    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "\n(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)", show_help: :always)
     medication_times_taken = time_input
     return medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken
   end
@@ -121,6 +121,8 @@ class App
     end
     medication_interval = @prompt.ask("How many days between doses? E.g. between Monday and Wednesday is 2 days", required: :true) do |input|
       input.convert(:int, "Invalid input. Please provide a number.")
+      input.in("2-7")
+      input.messages[:range?] = "Interval cannot be less than 2 or more than 7 days."
     end
     medication_times_taken = time_input
     medication_date_first_taken = get_date_taken(medication_interval)
@@ -214,26 +216,18 @@ class App
   end
 
   def get_date_taken(medication_interval)
-    choices = ["Today", "Tomorrow", "In 2 days", "In 3 days", "In 4 days", "In 5 days", "In 6 days"]
-
+    choices = [
+      { name: "Today", value: 0 },
+      { name: "Tomorrow", value: 1 },
+      { name: "In 2 days", value: 2 },
+      { name: "In 3 days", value: 3 },
+      { name: "In 4 days", value: 4 },
+      { name: "In 5 days", value: 5 },
+      { name: "In 6 days", value: 6 },
+    ]
     choices = choices.slice(0, medication_interval)
     choice = @prompt.select("When will you take the first dose?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
-    case choice
-    when "Today"
-      medication_date_first_taken = Date.today # please refactor
-    when "Tomorrow"
-      medication_date_first_taken = Date.today + 1
-    when "In 2 days"
-      medication_date_first_taken = Date.today + 2
-    when "In 3 days"
-      medication_date_first_taken = Date.today + 3
-    when "In 4 days"
-      medication_date_first_taken = Date.today + 4
-    when "In 5 days"
-      medication_date_first_taken = Date.today + 5
-    when "In 6 days"
-      medication_date_first_taken = Date.today + 6
-    end
+    medication_date_first_taken = Date.today + choice
     return medication_date_first_taken
   end
 
