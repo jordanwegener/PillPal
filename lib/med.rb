@@ -140,7 +140,6 @@ class MedicationInterval < Medication
 
   def take_within_hours(hours)
     start = Time.now
-    day = 24 * 3600
     final = start + (hours * 3600)
     pills_to_take = @times_taken.filter do |time_stamp|
       if time_stamp[:hour].to_i > start.hour

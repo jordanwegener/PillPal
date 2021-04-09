@@ -380,6 +380,7 @@ class App
         medication.display_medication
         puts "---------------------\n\n"
         i += 1
+        p medication.date_first_taken
       end
     else
       puts "\nThere are no medications yet...\n\n"
@@ -413,6 +414,7 @@ class App
     rescue ArgumentError, TypeError
       puts "Medication data has been corrupted. ".colorize(:red) + "\nThis may have happened because you tried to edit the med.sav file. \nUnfortunately this is unrecoverable and any saved medications have been lost. \nTo continue using PillPal the file needs to be reinitialised.\n\nUnless you think you might be able to somehow recover the data \n" + "(e.g. if you are a Marshal genius)".colorize(:light_black) + " you should choose yes. \nChoosing no will exit PillPal."
       @prompt.yes?("\nReinitialise data file? (no undo)".colorize(:yellow)) ? File.write("med.sav", Marshal.dump([])) : exit
+      retry
     end
   end
 end
