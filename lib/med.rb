@@ -58,14 +58,6 @@ class MedicationWeekly < Medication
     puts "\n"
   end
 
-  def edit_medication(name, dose, number_taken, days_taken, times_taken)
-    @name = name
-    @dose = dose
-    @number_taken = number_taken
-    @days_taken = days_taken
-    @times_taken = times_taken
-  end
-
   def take_within_hours(hours)
     start = Time.now
     final = start + (hours * 3600)
@@ -122,15 +114,6 @@ class MedicationInterval < Medication
       puts "#{time[:hour]}:#{time[:minute]}\n"
     end
     puts "\n"
-  end
-
-  def edit_medication(name, dose, number_taken, interval, times_taken, date_first_taken)
-    @name = name
-    @dose = dose
-    @number_taken = number_taken
-    @interval = interval
-    @times_taken = times_taken
-    @date_first_taken = date_first_taken
   end
 
   def check_needed(date)

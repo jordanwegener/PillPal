@@ -103,7 +103,7 @@ class App
     titlebar
     puts "Edit medication\n".colorize(:light_cyan)
     puts "You are editing " + "#{medications[index].name}".colorize(:magenta) + "\n\n"
-    @medications[index].edit_medication(*medication_weekly_input)
+    @medications[index] = MedicationWeekly.new(*medication_weekly_input)
     write_to_file
     clear
     titlebar
@@ -146,7 +146,7 @@ class App
     titlebar
     puts "Edit medication\n".colorize(:light_cyan)
     puts "You are editing " + "#{medications[index].name}".colorize(:magenta) + "\n\n"
-    @medications[index].edit_medication(*medication_interval_input)
+    @medications[index] = MedicationInterval.new(*medication_interval_input)
     write_to_file
     clear
     titlebar
@@ -380,7 +380,6 @@ class App
         medication.display_medication
         puts "---------------------\n\n"
         i += 1
-        p medication.date_first_taken
       end
     else
       puts "\nThere are no medications yet...\n\n"
