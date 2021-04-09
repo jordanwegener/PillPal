@@ -58,8 +58,10 @@ class MedicationWeekly < Medication
     puts "\n"
   end
 
-  def edit_medication(name, days_taken, times_taken)
+  def edit_medication(name, dose, number_taken, days_taken, times_taken)
     @name = name
+    @dose = dose
+    @number_taken = number_taken
     @days_taken = days_taken
     @times_taken = times_taken
   end

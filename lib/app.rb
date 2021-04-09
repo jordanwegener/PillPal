@@ -7,8 +7,6 @@ require "time"
 require "colorize"
 require_relative ("med.rb")
 
-# [:black, :light_black, :red, :light_red, :green, :light_green, :yellow, :light_yellow, :blue, :light_blue, :magenta, :light_magenta, :cyan, :light_cyan, :white, :light_white, :default]
-
 class App
   attr_accessor :medications
 
@@ -30,7 +28,7 @@ class App
       { name: "Add new medications", value: -> { add_medication_menu } },
       { name: "View, edit or delete existing medications", value: -> { medications_menu } },
       { name: "Get 1 week schedule", value: -> { schedule_week } },
-      { name: "Get 3, 6 or 12 hour schedule", value: -> { schedule_short } },
+      { name: "Get 3, 6, 12 or 24 hour schedule", value: -> { schedule_short } },
       { name: "Exit", value: -> {
         clear
         titlebar
@@ -45,13 +43,13 @@ class App
   end
 
   def titlebar
-    puts "-------------- PillPal --------------\n\n".colorize(:color => :yellow).underline
+    puts "-------------- PillPal --------------\n".colorize(:color => :yellow).underline
   end
 
   def add_medication_menu(argv = false)
     clear
     titlebar
-    puts "---------- Add Medication ----------\n\n".colorize(:light_cyan)
+    puts "---------- Add Medication ----------\n".colorize(:light_cyan)
     choice = @prompt.select("Is your medication taken on certain days of the week or at a certain interval (e.g. once every 3 days)?\n\n") do |menu|
       menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
       menu.show_help :always
@@ -82,7 +80,7 @@ class App
       input.convert(:int, "Invalid input. Please provide a number.")
     end
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
-    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "\n(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)", show_help: :always)
+    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "\n(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)", show_help: :always, required: :true)
     medication_times_taken = time_input
     return medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken
   end
@@ -103,7 +101,8 @@ class App
   def edit_medication_weekly(index)
     clear
     titlebar
-    puts "Edit medication\n\n".colorize(:light_cyan)
+    puts "Edit medication\n".colorize(:light_cyan)
+    puts "You are editing " + "#{medications[index].name}".colorize(:magenta) + "\n\n"
     @medications[index].edit_medication(*medication_weekly_input)
     write_to_file
     clear
@@ -132,7 +131,7 @@ class App
   def add_medication_interval
     clear
     titlebar
-    puts "Add medication taken at intervals\n\n".colorize(:light_cyan)
+    puts "Add medication taken at intervals\n".colorize(:light_cyan)
     @medications << MedicationInterval.new(*medication_interval_input)
     write_to_file
     clear
@@ -145,7 +144,8 @@ class App
   def edit_medication_interval(index)
     clear
     titlebar
-    puts "Edit medication\n\n".colorize(:light_cyan)
+    puts "Edit medication\n".colorize(:light_cyan)
+    puts "You are editing " + "#{medications[index].name}".colorize(:magenta) + "\n\n"
     @medications[index].edit_medication(*medication_interval_input)
     write_to_file
     clear
@@ -161,12 +161,12 @@ class App
     puts "Be careful, this is permanent!".colorize(:background => :red, :color => :white).blink
     choice = @prompt.ask("\nEnter a number to edit or q to cancel.")
     if choice.is_integer?
-      if choice.to_i >= 0 && choice.to_i <= medications.length - 1
-        edications.delete_at(choice.to_i - 1)
-        clear
-        titlebar
-        puts "\nMedication deleted!"
-        continue
+      if choice.to_i >= 0 && medications[choice.to_i - 1].nil? == false
+        if medications[choice.to_i - 1].class == MedicationWeekly
+          edit_medication_weekly(choice.to_i - 1)
+        elsif medications[choice.to_i - 1].class == MedicationInterval
+          edit_medication_interval(choice.to_i - 1)
+        end
       else
         puts "\nSelected entry does not exist.".colorize(:red)
         continue
@@ -174,11 +174,11 @@ class App
       end
     else
       if choice.upcase == "Q"
-        puts "\n Delete cancelled.".colorize(:green)
+        puts "\n Edit cancelled.".colorize(:green)
         continue
         medications_menu
       else
-        puts "\nInvalid input, delete cancelled.".colorize(:red)
+        puts "\nInvalid input, edit cancelled.".colorize(:red)
         continue
         medications_menu
       end
@@ -191,12 +191,18 @@ class App
     puts "Be careful, this is permanent!".colorize(:background => :red, :color => :white).blink
     choice = @prompt.ask("\nEnter a number to delete or q to cancel.")
     if choice.is_integer?
-      if choice.to_i >= 0 && choice.to_i <= medications.length - 1
-        edications.delete_at(choice.to_i - 1)
-        clear
-        titlebar
-        puts "\nMedication deleted!"
-        continue
+      if choice.to_i >= 0 && medications[choice.to_i - 1].nil? == false
+        if @prompt.yes?("Are you sure?")
+          medications.delete_at(choice.to_i - 1)
+          clear
+          titlebar
+          puts "\nMedication deleted!"
+          continue
+        else
+          puts "\n Delete cancelled.".colorize(:green)
+          continue
+          medications_menu
+        end
       else
         puts "\nSelected entry does not exist.".colorize(:red)
         continue
@@ -235,32 +241,30 @@ class App
     loop do
       clear
       titlebar
-      puts "View, edit or delete existing medications\n\n".colorize(:light_cyan)
-      choice = @prompt.select("Please select from the following options:\n\n") do |menu|
-        menu.help "(Choose using ↑/↓ arrow keys, press Enter to select)"
-        menu.show_help :always
-        menu.choice "View all medication entries", 1
-        menu.choice "Edit a medication entry", 2
-        menu.choice "Delete a medication entry", 3
-        menu.choice "Back", 4
-      end
-      case choice
-      when 1
-        display_all_medications
-        continue
-      when 2
-        edit_medication
-        write_to_file
-      when 3
-        delete_medication
-        write_to_file
-      when 4
-        if argv
-          exit
-        else
-          break
-        end
-      end
+      puts "View, edit or delete existing medications\n".colorize(:light_cyan)
+      choices = [
+        { name: "View all medication entries", value: -> {
+          display_all_medications
+          continue
+        } },
+        { name: "Edit a medication entry", value: -> {
+          edit_medication
+          write_to_file
+        } },
+        { name: "Delete a medication entry", value: -> {
+          delete_medication
+          write_to_file
+        } },
+        { name: "Back", value: -> {
+          if argv
+            exit
+          else
+            clear
+            main_menu
+          end
+        } },
+      ]
+      choice = @prompt.select("Please select from the following options:\n", choices, help: "(Choose using ↑/↓ arrow keys, press Enter to select)", show_help: :always)
     end
   end
 
@@ -270,7 +274,7 @@ class App
 
     loop do
       input = @prompt.ask("What is the first (or only) time of day you have to take this medication?", required: :true)
-      if Tod::TimeOfDay.parsable?(input) == true
+      if Tod::TimeOfDay.parsable?(input)
         time_taken = Tod::TimeOfDay.parse(input)
         break
       else
@@ -283,7 +287,7 @@ class App
       loop do
         loop do
           input = @prompt.ask("What is the first (or only) time of day you have to take this medication?", required: :true)
-          if Tod::TimeOfDay.parsable?(input) == true
+          if Tod::TimeOfDay.parsable?(input)
             time_taken = Tod::TimeOfDay.parse(input)
             break
           else
@@ -344,7 +348,12 @@ class App
       puts "\n\n"
     end
     continue
-    exit if argv
+    if argv
+      exit
+    else
+      clear
+      main_menu
+    end
   end
 
   def schedule_short(argv = false)
@@ -358,6 +367,8 @@ class App
     end
     continue
     exit if argv
+    clear
+    main_menu
   end
 
   def display_all_medications
@@ -396,8 +407,13 @@ class App
   end
 
   def read_from_file
+    # begin
     return [] unless File.exist?("med.sav")
     medications = Marshal.load(File.read("med.sav"))
+    # rescue ArgumentError
+    # puts "Medication data is corrupted. Reinitialising data."
+    # File.write("med.sav", Marshal.dump([]))
+    # end
   end
 end
 
