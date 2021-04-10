@@ -80,7 +80,7 @@ class App
       input.convert(:int, "Invalid input. Please provide a number.")
     end
     choices = %w(Sunday Monday Tuesday Wednesday Thursday Friday Saturday)
-    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "\n(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)", show_help: :always, required: :true)
+    medication_days_taken = @prompt.multi_select("Which days of the week do you take it?", choices, per_page: 7, help: "\n(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)", show_help: :always, min: 1)
     medication_times_taken = time_input
     return medication_name, medication_dose, medication_number_taken, medication_days_taken, medication_times_taken
   end

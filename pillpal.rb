@@ -5,6 +5,7 @@ require "tty-prompt"
 pillpal = App.new
 
 case ARGV[0]
+when nil
 when "--add"
   pillpal.add_medication_menu(true)
 when "--edit"
