@@ -232,7 +232,7 @@ class App
       { name: "In 6 days", value: 6 },
     ]
     choices = choices.slice(0, medication_interval)
-    choice = @prompt.select("When will you take the first dose?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
+    choice = @prompt.select("When will you take your next dose of this medication?", choices, per_page: 7, help: "(Press ↑/↓ arrow keys to navigate, Space to select and Enter to continue)")
     medication_date_first_taken = Date.today + choice
     return medication_date_first_taken
   end

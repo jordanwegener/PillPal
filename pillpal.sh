@@ -1,2 +1,2 @@
-#!/usr/bin/env ruby
-ruby pillpal.rb
+#!/usr/bin/env bash
+ruby pillpal.rb $1
